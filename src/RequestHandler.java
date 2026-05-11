@@ -163,7 +163,7 @@ public class RequestHandler {
                     } else {
                         Player p = playerManager.getPlayer(session.username);
                         if (p == null) response = "PLAYER_NOT_FOUND";
-                        else response = p.getFullStatsString();
+                        else response = p.getStatsResponse();
                     }
                     break;
 

@@ -410,6 +410,10 @@ public class ClientMain {
                 if (part.startsWith("avgScore:"))      System.out.println("Punteggio medio: " + part.substring(9));
             }
 
+        // STATISTICHE GIOCATORE
+        } else if (response.startsWith("PLAYER_STATS|")) {
+            printPlayerStats(response);
+
         // Risposta generica non gestita esplicitamente
         } else {
             System.out.println("\n[SERVER]: " + response);
@@ -492,10 +496,66 @@ public class ClientMain {
         System.out.println(separator);
     }
 
+    /* Parsa la risposta PLAYER_STATS e stampa le statistiche con l'istogramma visivo. */
+    private void printPlayerStats(String response) {
+        String name = "", completed = "0", wins = "0", winrate = "0", lossrate = "0";
+        String streak = "0", maxstreak = "0", perfect = "0", score = "0";
+        int[] histogram = new int[6];
+
+        for (String part : response.split("\\|")) {
+            if (part.startsWith("name:"))      name      = part.substring(5);
+            if (part.startsWith("completed:")) completed = part.substring(10);
+            if (part.startsWith("wins:"))      wins      = part.substring(5);
+            if (part.startsWith("winrate:"))   winrate   = part.substring(8);
+            if (part.startsWith("lossrate:"))  lossrate  = part.substring(9);
+            if (part.startsWith("streak:"))    streak    = part.substring(7);
+            if (part.startsWith("maxstreak:")) maxstreak = part.substring(10);
+            if (part.startsWith("perfect:"))   perfect   = part.substring(8);
+            if (part.startsWith("score:"))     score     = part.substring(6);
+            if (part.startsWith("histogram:")) {
+                String[] vals = part.substring(10).split(",");
+                for (int i = 0; i < vals.length && i < 6; i++) {
+                    try { histogram[i] = Integer.parseInt(vals[i].trim()); }
+                    catch (NumberFormatException ignored) {}
+                }
+            }
+        }
+
+        System.out.println("\n--- STATISTICHE PER " + name + " ---");
+        System.out.println("Puzzles Completed : " + completed);
+        System.out.println("Wins              : " + wins);
+        System.out.println("Win Rate          : " + winrate + "%");
+        System.out.println("Loss Rate         : " + lossrate + "%");
+        System.out.println("Current Streak    : " + streak);
+        System.out.println("Max Streak        : " + maxstreak);
+        System.out.println("Perfect Puzzles   : " + perfect);
+        System.out.println("Punteggio Totale  : " + score);
+        System.out.println();
+        printHistogram(histogram);
+    }
+
+    /* Stampa un istogramma ASCII orizzontale degli errori per partita. */
+    private void printHistogram(int[] histogram) {
+        String[] labels = {"0 err  ", "1 err  ", "2 err  ", "3 err  ", "Perso  ", "Timeout"};
+        int maxVal = 0;
+        for (int v : histogram) if (v > maxVal) maxVal = v;
+        int maxBarWidth = 20;
+        String separator = new String(new char[38]).replace("\0", "-");
+
+        System.out.println("Istogramma Risultati:");
+        System.out.println(separator);
+        for (int i = 0; i < histogram.length; i++) {
+            int barLen = (maxVal == 0) ? 0 : (histogram[i] * maxBarWidth / maxVal);
+            String bar = new String(new char[barLen]).replace("\0", "#");
+            System.out.printf("%s | %-20s %d%n", labels[i], bar, histogram[i]);
+        }
+        System.out.println(separator);
+    }
+
     // ===================== MULTICAST LISTENER =====================
 
     /*
-     Avvia un thread deamon che rimane in ascolto delle notifiche UDP multicast
+     Avvia un thread demone che rimane in ascolto delle notifiche UDP multicast
      inviate dal server (fine partita, nuova partita, classifica, shutdown).
 
      La logica per trovare l'interfaccia di rete è necessaria perché su alcune

@@ -102,22 +102,23 @@ public class Player {
 
     public int getTotalScore() { return totalScore; }
 
-    /* Restituisce una stringa formattata con tutte le statistiche (per il comando 'stats'). */
-    public String getFullStatsString() {
-        StringBuilder sb = new StringBuilder();
-        sb.append("--- STATISTICHE PER ").append(name).append(" ---\n");
-        sb.append("Puzzles Completed: ").append(completed).append("\n");
-        sb.append("Win Rate: ").append(String.format("%.1f", winRate())).append("%\n");
-        sb.append("Loss Rate: ").append(String.format("%.1f", lossRate())).append("%\n");
-        sb.append("Current Streak: ").append(currentStreak).append("\n");
-        sb.append("Max Streak: ").append(maxStreak).append("\n");
-        sb.append("Perfect Puzzles: ").append(perfect).append("\n");
-        sb.append("Punteggio Totale: ").append(totalScore).append("\n");
-        sb.append("Istogramma Errori (0,1,2,3,4,Timeout): [");
+    /* Restituisce la risposta strutturata con le statistiche (per il comando 'stats'). */
+    public String getStatsResponse() {
+        StringBuilder sb = new StringBuilder("PLAYER_STATS");
+        sb.append("|name:").append(name);
+        sb.append("|completed:").append(completed);
+        sb.append("|wins:").append(wins);
+        sb.append("|winrate:").append(String.format("%.1f", winRate()));
+        sb.append("|lossrate:").append(String.format("%.1f", lossRate()));
+        sb.append("|streak:").append(currentStreak);
+        sb.append("|maxstreak:").append(maxStreak);
+        sb.append("|perfect:").append(perfect);
+        sb.append("|score:").append(totalScore);
+        sb.append("|histogram:");
         for (int i = 0; i < mistakeHistogram.length; i++) {
-            sb.append(mistakeHistogram[i]).append(i == 5 ? "" : ",");
+            sb.append(mistakeHistogram[i]);
+            if (i < mistakeHistogram.length - 1) sb.append(",");
         }
-        sb.append("]");
         return sb.toString();
     }
 
