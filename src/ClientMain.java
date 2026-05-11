@@ -164,14 +164,37 @@ public class ClientMain {
                 break;
 
             case "play":
+                // Pre-check: chiede al server se la partita è attiva
+                try {
+                    Request checkReq = new Request();
+                    checkReq.operation = "requestGameInfo";
+                    checkReq.gameId = -1;
+                    sendRequest(checkReq);
+                    String checkResp = readResponse();
+                    if (!checkResp.startsWith("GAME_INFO|")) {
+                        // Pausa, partita conclusa o errore
+                        if (checkResp.startsWith("GAME_RESULT|")) {
+                            System.out.println("Hai già terminato questa partita. Attendi la prossima.");
+                        } else {
+                            System.out.println("[IN PAUSA] Il gioco è in pausa. Attendi qualche secondo.");
+                        }
+                        return;
+                    }
+                } catch (IOException e) {
+                    System.err.println("[ERRORE] Connessione persa: " + e.getMessage());
+                    running = false;
+                    return;
+                }
                 req.operation = "submitProposal";
-                System.out.println("Inserisci le 4 parole separate da spazio:");
+                System.out.println("Inserisci le 4 parole separate da spazio (usa _ per parole composte, es. STOP_SIGN):");
                 String line = scanner.nextLine();
                 String[] parts = line.trim().toUpperCase().split("\\s+");
                 if (parts.length != 4) {
                     System.out.println("Errore: devi inserire esattamente 4 parole.");
                     return;
                 }
+                // Converti underscore in spazio per supportare parole composte (es. STOP_SIGN → STOP SIGN)
+                for (int i = 0; i < parts.length; i++) parts[i] = parts[i].replace('_', ' ');
                 req.words = new HashSet<>(Arrays.asList(parts));
                 // Dopo la de-duplicazione del Set, potrebbero esserci meno di 4 parole
                 // (l'utente ha inserito duplicati). Lo blocchiamo qui invece di mandare
