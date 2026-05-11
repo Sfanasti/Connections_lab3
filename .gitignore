@@ -1,0 +1,11 @@
+bin/
+*.class
+players.json
+gameHistory.json
+*.iml
+.idea/
+md_to_docx.py
+.claude/
+lib/error_prone_annotations*.jar
+Progetto LAB2526_V11.pdf
+relazione.md
